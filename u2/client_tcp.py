@@ -22,6 +22,3 @@ my_socket.close() # closing the socket
 
 ### When we are running client-server, always run the server before the client ###
 
-# NextPy
-# This repository is the implementation of network.py course
-
