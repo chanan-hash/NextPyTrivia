@@ -20,7 +20,7 @@ print("Client connected") # This line of code will run, only if a client will co
 while True: # while the client didn't ask to close the socket
     data = client_socket.recv(1024).decode() # getting the data from the client, and decoding it from bytes to String that we can understand
     print("Client sent: " + data)
-    client_socket.send(data.encode()) # sending back to the client a message as we've done in the client side, by encoding it
+    #client_socket.send(data.encode()) # sending back to the client a message as we've done in the client side, by encoding it
     if data == "Quit": # condition for closing the socket
         print("Closing client socket now...")
         client_socket.send("Bye".encode()) # Then the client will get a "Bey" message and will close the socket according to his condition (waiting for "Bye", look there)
