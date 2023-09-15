@@ -1,5 +1,5 @@
 import time
-from random import random
+import random
 from socket import *
 
 server_sock = socket(AF_INET, SOCK_STREAM)
