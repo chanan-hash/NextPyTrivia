@@ -6,7 +6,7 @@ SERVER_PORT = 5678
 
 # HELPER SOCKET METHODS
 
-def build_and_send_message(conn : socket.socket, code, data):
+def build_and_send_message(conn : socket.socket, code: str, data: str):
     """
     Builds a new message using chatlib, wanted code and message.
     Prints debug info, then sends it to the given socket.
@@ -53,7 +53,7 @@ def connect():
     return socket_server
 
 
-def error_and_exit(error_msg):
+def error_and_exit(error_msg: str):
     """
     Prints given error message, closes the program with error code 1
     :param error_msg: error message to print
@@ -62,17 +62,28 @@ def error_and_exit(error_msg):
     exit()
 
 
-def login(conn: socket.socket):
-    username = input("Please enter username: \n")
-    password = input("Please enter password: \n")
+def login(conn: socket.socket) -> None:
+    """
+    Tries to log in user to server.
+    get user and password from user and send to server.
 
-    player = chatlib.join_data([username,password])
+    :param conn: socket object to communicate with server
+    :return: None
+    """
+    while True:
+        username = input("Please enter username: \n")
+        password = input("Please enter password: \n")
 
+        player = chatlib.join_data([username,password])
 
-    build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["login_msg"],"")
-    cmd, data = recv_message_and_parse(conn)
+        build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["login_msg"],player)
+        cmd, data = recv_message_and_parse(conn)
 
-#    while cmd != error_and_exit():
+        if cmd == chatlib.PROTOCOL_SERVER["login_ok_msg"]:
+            print("Login successful!")
+            return  # Exit the loop if login succeeds
+        else:
+            print("Login failed. Please try again.")
 
 
 def logout(conn : socket.socket):
@@ -95,6 +106,22 @@ def main():
     logout(conn)
     conn.close()
     print("Thanks for playing!!!")
+    #conn = connect()  # Create a socket connection to the server
+    #login(conn)  # Handle the login process
+
+    #while True:
+    # Implement your main client functionality here
+    # You can send and receive messages, interact with the server, etc.
+    # Use build_and_send_message and recv_message_and_parse functions as needed.
+
+     #   choice = input("Enter your choice (e.g., send a message, check status, etc.): ")
+
+      #  if choice == "logout":
+       #     logout(conn)
+        #    conn.close()
+         #   print("Logged out. Thanks for playing!")
+          #  break  # Exit the loop and the program
+
 
 if __name__ == '__main__':
     main()

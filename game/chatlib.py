@@ -1,3 +1,4 @@
+from typing import List
 # Protocol Constants
 
 CMD_FIELD_LENGTH = 16  # Exact length of cmd field (in bytes)
@@ -40,7 +41,7 @@ PROTOCOL_SERVER = {
 ERROR_RETURN = None  # What is returned in case of an error
 
 
-def build_message(cmd, data):
+def build_message(cmd: str, data: str):
     """
     Gets command name (str) and data field (str) and creates a valid protocol message
     Returns: str, or None if error occured
@@ -79,7 +80,7 @@ def parse_message(data: str):  # data : str, means that the function is getting 
         return None, None
 
     # Splitting the input according to "|" to brake the message to parts
-    dataSplit = data.spilt(DELIMITER)  # --> [LOGIN,0009,aaaa#bbbb] exmp'
+    dataSplit = data.split(DELIMITER)  # --> [LOGIN,0009,aaaa#bbbb] exmp'
 
     # The message needs to be built from 3 parts: "LOGIN | 0009 | aaaa#bbbb" exmp'
     if len(dataSplit) != 3:
@@ -107,7 +108,7 @@ def parse_message(data: str):  # data : str, means that the function is getting 
     return cmd, msg
 
 
-def split_data(msg, expected_fields):
+def split_data(msg: str, expected_fields: int):
     """
     Helper method. gets a string and number of expected fields in it. Splits the string
     using protocol's data field delimiter (|#) and validates that there are correct number of fields.
@@ -128,7 +129,7 @@ def split_data(msg, expected_fields):
     return msg.split(DATA_DELIMITER)
 
 
-def join_data(msg_fields):
+def join_data(msg_fields: List[str]):
     """
     Helper method. Gets a list, joins all of it's fields to one string divided by the data delimiter.
     Returns: string that looks like cell1#cell2#cell3
