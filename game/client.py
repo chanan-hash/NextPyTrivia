@@ -62,23 +62,39 @@ def error_and_exit(error_msg):
     exit()
 
 
-def login(conn):
+def login(conn: socket.socket):
     username = input("Please enter username: \n")
-    # Implement code
+    password = input("Please enter password: \n")
+
+    player = chatlib.join_data([username,password])
+
 
     build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["login_msg"],"")
+    cmd, data = recv_message_and_parse(conn)
 
-    # Implement code
+#    while cmd != error_and_exit():
 
-    pass
 
-def logout(conn):
-    # Implement code
-    pass
+def logout(conn : socket.socket):
+    """
+    This functuion sending logout message by using 'build_and_send_message'
+    :param conn:
+    :return:
+    """
+    # chatlib.PROTOCOL_CLIENT["logout_msg"] --> A dictionary, for this is the key word for LOGOUT
+    build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["logout_msg"],"")
 
 def main():
-    # Implement code
-    pass
+    """
+    Main method.
+    connect to server, login, logout, and close connection.
+    """
+    conn = connect() # Creating the socket
+    login(conn)
+
+    logout(conn)
+    conn.close()
+    print("Thanks for playing!!!")
 
 if __name__ == '__main__':
     main()
