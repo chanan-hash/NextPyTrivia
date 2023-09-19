@@ -40,6 +40,20 @@ def recv_message_and_parse(conn: socket.socket):
     return cmd, data
 
 
+def build_send_recv_parse(conn: socket.socket, cmd: str, data: str) -> None:
+    """
+    This function suppose to shorten the proces by building the message and sending it
+    Builds a new message using chatlib, wanted code and message.
+    Then sends it to the given socket.
+    After this, receives a new message from given socket,
+    then parses the message using chatlib.
+    Parameters: conn (socket object), code (str), data (str)
+    Returns: cmd (str) and data (str) of the received message.
+    If error occurred, will return None, None
+    :rtype: object
+    """
+    build_and_send_message(conn,cmd,data)
+    return recv_message_and_parse(conn) # this return 2 arguments, cnd and data
 
 def connect():
     """
@@ -95,32 +109,63 @@ def logout(conn : socket.socket):
     # chatlib.PROTOCOL_CLIENT["logout_msg"] --> A dictionary, for this is the key word for LOGOUT
     build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["logout_msg"],"")
 
+# Score functions
+def get_score(conn: socket.socket) -> None:
+    """
+    This function printing the current score of the player
+    :param conn:
+    :return:player score
+    """
+    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["get_score_msg"],"")
+    if cmd == chatlib.PROTOCOL_SERVER["get_score_msg"]: # means we got it correct
+        print(f"your score is: {data}")
+    else:
+        error_and_exit("Error getting your score!")
+
+def get_highscore(conn: socket.socket)-> None:
+    """
+    Gets highest score from server.
+    :param conn:
+    :return None:
+    """
+    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["get_high_score_msg"],"")
+    if cmd == chatlib.PROTOCOL_SERVER["get_high_score_msg"]:
+        print(f"High score is:\n{data}")
+    else:
+        error_and_exit("Error getting high score")
+
+
 def main():
     """
     Main method.
     connect to server, login, logout, and close connection.
     """
-    conn = connect() # Creating the socket
-    login(conn)
-
-    logout(conn)
-    conn.close()
-    print("Thanks for playing!!!")
-    #conn = connect()  # Create a socket connection to the server
-    #login(conn)  # Handle the login process
-
-    #while True:
     # Implement your main client functionality here
     # You can send and receive messages, interact with the server, etc.
     # Use build_and_send_message and recv_message_and_parse functions as needed.
-
-     #   choice = input("Enter your choice (e.g., send a message, check status, etc.): ")
-
-      #  if choice == "logout":
-       #     logout(conn)
-        #    conn.close()
-         #   print("Logged out. Thanks for playing!")
-          #  break  # Exit the loop and the program
+    conn = connect() # Creating the socket
+    login(conn)
+    user_input = ""
+    while user_input != "q":
+        user_input = input("What is your choise:\n"
+                           "p\t Play a trivia question\n"
+                           "s\t Get my score\n"
+                           "h\t Get the high score\n"
+                           "l\t Get logged users\n"
+                           "q\t Quit\n")
+        if user_input == "p":
+            play_question(conn)
+        elif user_input == "s":
+            get_score(conn)
+        elif user_input == "h":
+            get_highscore(conn)
+        elif user_input == "l":
+            get_logged_users(conn)
+        elif user_input != "q":
+            print("Thanks for playing!!!")
+            break
+    logout(conn)
+    conn.close()
 
 
 if __name__ == '__main__':
