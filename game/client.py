@@ -134,6 +134,29 @@ def get_highscore(conn: socket.socket)-> None:
     else:
         error_and_exit("Error getting high score")
 
+# Players functions
+def play_question(conn: socket.socket):
+    """
+    Gets new question from the server,and print it to the user.
+    Then get the user answer.
+
+    If the server send NO_QUESTIONS, the game is end.
+    If error occurred, the program will close.
+    :param conn:
+    :return:
+    """
+    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["get_question"], "")
+    print(f"The question is: {data}")
+
+    if cmd == chatlib.PROTOCOL_SERVER["no_questions"]:
+        print("No more questions to you, the game is ended")
+        return
+
+    # check if the server send the question
+    elif cmd == chatlib.PROTOCOL_SERVER["get_question"]:
+        # split the data to question and answers
+        split_data = chatlib.split_data(data, 6)
+    #TODO complete it
 
 def main():
     """
