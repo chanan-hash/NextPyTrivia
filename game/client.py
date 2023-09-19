@@ -158,6 +158,19 @@ def play_question(conn: socket.socket):
         split_data = chatlib.split_data(data, 6)
     #TODO complete it
 
+def get_logged_users(conn: socket.socket):
+    """
+    Gets logged users from server.
+   :param conn:
+   :return:
+    """
+    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["get_login_players"], "")
+    if cmd == chatlib.PROTOCOL_SERVER["get_login_players_msg"]:
+        print(f"Logged users: \n{data}")
+    else:
+        error_and_exit("Error getting high score")
+
+
 def main():
     """
     Main method.
@@ -189,6 +202,7 @@ def main():
             break
     logout(conn)
     conn.close()
+#    exit()
 
 
 if __name__ == '__main__':
