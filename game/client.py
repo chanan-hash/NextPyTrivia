@@ -156,7 +156,23 @@ def play_question(conn: socket.socket):
     elif cmd == chatlib.PROTOCOL_SERVER["get_question"]:
         # split the data to question and answers
         split_data = chatlib.split_data(data, 6)
-    #TODO complete it
+
+        if split_data is None:
+            error_and_exit("Error play question - number of field is not 6")
+            
+        # id#question#answer1#answer2#answer3#answer4 --> the struct of a trivia question
+        # After we've split it we can show it to the user
+        question_id = split_data[0]
+        question = split_data[1]
+        print(f"Question: {question}\n\t1. {split_data[2]}\n\t2. {split_data[3]}\n\t3. {split_data[4]}\n\t3. {split_data[5]}")
+        # This was showing the question
+
+        # Getting the answer
+
+
+    else:
+        error_and_exit("Error play question - get wrong response")
+
 
 def get_logged_users(conn: socket.socket):
     """
