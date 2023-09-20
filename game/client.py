@@ -188,12 +188,12 @@ def user_ans(conn :socket.socket, question_id: str):
         print("Invalid number for answer")
 
     # Sending he answer
-    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["send_anwer"],chatlib.join_data([question_id,ans]))
+    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["send_answer"],chatlib.join_data([question_id,ans]))
 
     # Chevking if this is the correct answer
     if cmd == chatlib.PROTOCOL_SERVER["correct_answer"]:
         print("Coreect answer, ver good!")
-    elif cmd == chatlib.PROTOCOL_SERVER["worng_answer"]:
+    elif cmd == chatlib.PROTOCOL_SERVER["wrong_answer"]:
         print(f"Wrong answer! the correct answer is: {data}")
     else:
         error_and_exit("Error play question")
