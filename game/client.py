@@ -168,11 +168,35 @@ def play_question(conn: socket.socket):
         # This was showing the question
 
         # Getting the answer
-
+        user_ans(conn,question_id)
 
     else:
         error_and_exit("Error play question - get wrong response")
 
+
+# Help function to get the user ans, by question id
+def user_ans(conn :socket.socket, question_id: str):
+    """
+    Gets answer from user, and send it to server.
+    Then, print the response from the server.
+    :param conn:
+    :param question_id:
+    :return:
+    """
+    ans = input("\n What is your answer (put a number 1-4): ")
+    if not ans.isdigit() or int(ans) < 1 or int(ans) > 4: # checking if the user input is a valid number
+        print("Invalid number for answer")
+
+    # Sending he answer
+    cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["send_anwer"],chatlib.join_data([question_id,ans]))
+
+    # Chevking if this is the correct answer
+    if cmd == chatlib.PROTOCOL_SERVER["correct_answer"]:
+        print("Coreect answer, ver good!")
+    elif cmd == chatlib.PROTOCOL_SERVER["worng_answer"]:
+        print(f"Wrong answer! the correct answer is: {data}")
+    else:
+        error_and_exit("Error play question")
 
 def get_logged_users(conn: socket.socket):
     """
