@@ -15,7 +15,7 @@ def build_and_send_message(conn : socket.socket, code: str, data: str):
     """
 
     info = chatlib.build_message(code,data)
-    print(f"Client sent: {info}")
+   # print(f"Client sent: {info}")
     conn.send(info.encode())
 
 # conn: socket.socket --> means that the type on 'conn' is a socket object so we can operate on it socket functions
@@ -146,7 +146,7 @@ def play_question(conn: socket.socket):
     :return:
     """
     cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["get_question"], "")
-    print(f"The question is: {data}")
+#    print(f"The question is: {data}")
 
     if cmd == chatlib.PROTOCOL_SERVER["no_questions"]:
         print("No more questions to you, the game is ended")
@@ -164,10 +164,11 @@ def play_question(conn: socket.socket):
         # After we've split it we can show it to the user
         question_id = split_data[0]
         question = split_data[1]
-        print(f"Question: {question}\n\t1. {split_data[2]}\n\t2. {split_data[3]}\n\t3. {split_data[4]}\n\t3. {split_data[5]}")
+        print(f"Question: {question}\n\t1. {split_data[2]}\n\t2. {split_data[3]}\n\t3. {split_data[4]}\n\t4. {split_data[5]}")
         # This was showing the question
 
         # Getting the answer
+        # TODO --> put the answer in a while loop
         user_ans(conn,question_id)
 
     else:
@@ -192,7 +193,7 @@ def user_ans(conn :socket.socket, question_id: str):
 
     # Chevking if this is the correct answer
     if cmd == chatlib.PROTOCOL_SERVER["correct_answer"]:
-        print("Coreect answer, ver good!")
+        print("Coreect answer, very good!")
     elif cmd == chatlib.PROTOCOL_SERVER["wrong_answer"]:
         print(f"Wrong answer! the correct answer is: {data}")
     else:
