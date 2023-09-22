@@ -4,6 +4,7 @@ SERVER_IP = "0.0.0.0" # The server is listening to evey client, no matter if is 
 PORT = 8821
 MAX_MSG_SIZE = 1024 # The max size of the message, to be coordinated
 BIND_UDP = (SERVER_IP,PORT) # A tuple with the 'ip' and 'port'
+
 server_socket = socket(AF_INET,SOCK_DGRAM) # DGRAM stands for UDP protocol
 server_socket.bind(BIND_UDP)
 print("Server up and running...")
