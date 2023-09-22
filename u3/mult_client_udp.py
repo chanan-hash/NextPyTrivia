@@ -8,6 +8,7 @@ PORT = 8821
 MAX_MSG_SIZE = 1024
 
 response = ""
+# TODO fix the client's side breaking point
 while True:
     data = input("Please enter your message: ")
     my_socket.sendto(data.encode(),(SERVER_IP,PORT))
