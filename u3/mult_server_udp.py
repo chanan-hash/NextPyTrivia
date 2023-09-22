@@ -13,9 +13,11 @@ client_message = ""
 while client_message != "Exit":
     (client_message, client_address) = server_socket.recvfrom(MAX_MSG_SIZE)
     data = client_message.decode()
+    if data == "Exit":
+        break
     print("The client sent: " + data)
     server_socket.sendto(data.encode(), client_address)
-    
+
 server_socket.sendto("Quit".encode(),client_address)
 print("Server is closing")
 server_socket.close()

@@ -8,10 +8,12 @@ PORT = 8821
 MAX_MSG_SIZE = 1024
 
 response = ""
-while response != "Quit":
+while True:
     data = input("Please enter your message: ")
     my_socket.sendto(data.encode(),(SERVER_IP,PORT))
     (response, remote_address) = my_socket.recvfrom(MAX_MSG_SIZE)
+    if response.decode() == "Quit":
+        break
     print("The server sent: " + response.decode())
 
 print("Bye!")
