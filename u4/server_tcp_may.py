@@ -18,7 +18,7 @@ MAX_LENGTH_MSG = 1024
 SERVER_PORT = 5555
 SERVER_IP = "0.0.0.0"
 
-def main:
+def main():
     print("Setting up the server...")
     # Establishing sever socket
     server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -36,7 +36,7 @@ def main:
                 print("New client joined! ", client_address)
                 client_sockets.append(client_socket)
             else:
-                pass
+                print("New data from client!")
 
 main()
 
