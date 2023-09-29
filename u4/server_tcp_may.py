@@ -18,6 +18,11 @@ MAX_LENGTH_MSG = 1024
 SERVER_PORT = 5555
 SERVER_IP = "0.0.0.0"
 
+def print_client_sockets(client_sockets: list): # printing the addresses of the connected sockets
+    for c in client_sockets:
+        print("\t", c.getpeetname()) # this fucntion is for getting the Ip and port of the client, and "\t" for Tab
+        # We will call it evey time client has connected or disconnected
+
 def main():
     print("Setting up the server...")
     # Establishing sever socket
@@ -28,15 +33,28 @@ def main():
     client_sockets = [] # For adding client sockets, in the beginning its empty because there's no connection
 
     while True: # While the socket is opem, we are scanning for finding clients
-        ready_to_read, ready_to_write, in_error = select.select([server_socket] + client_socket, [], [])
+        ready_to_read, ready_to_write, in_error = select.select([server_socket] + client_sockets, [], [])
         # In the beginning the list is not empty it contains the server's socket, that from it we can get new connections
         for current_socket in ready_to_read: # going through the socket list that we can read from
             if current_socket is server_socket: #  In every iteration we are checking the current socket is the server one, if it is we can establish connection, someone new wants to connect
                 (client_socket, client_address) = current_socket.accept()
                 print("New client joined! ", client_address)
                 client_sockets.append(client_socket)
+                print_client_sockets(client_sockets)
             else:
                 print("New data from client!")
+                data = current_socket.recv(MAX_LENGTH_MSG).decode() # 2 types of messages, or logout or regular message
+                if data == "": # IN TCP, logout request is an empty String
+                    print("Connection closed")
+                    client_sockets.remove(current_socket) # removing it from the client list, and closing it
+                    current_socket.close()
+                    print_client_sockets(client_sockets)
+
+                else: # This is a regular message, and because that is an echo server we will sed it the same message
+                    print("Client sent: " + data)
+                    current_socket.send(data.encode())
+
+
 
 main()
 
