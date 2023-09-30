@@ -19,8 +19,8 @@ SERVER_PORT = 5555
 SERVER_IP = "0.0.0.0"
 
 def print_client_sockets(client_sockets: list): # printing the addresses of the connected sockets
-    for c in client_sockets:
-        print("\t", c.getpeetname()) # this fucntion is for getting the Ip and port of the client, and "\t" for Tab
+    for c in client_sockets: # enumerate(client_sockets)
+        print("\t", c.getpeername()) # this function is for getting the Ip and port of the client, and "\t" for Tab
         # We will call it evey time client has connected or disconnected
 
 def main():
@@ -53,7 +53,6 @@ def main():
                 else: # This is a regular message, and because that is an echo server we will sed it the same message
                     print("Client sent: " + data)
                     current_socket.send(data.encode())
-
 
 
 main()
