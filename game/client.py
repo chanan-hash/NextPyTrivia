@@ -30,7 +30,7 @@ def recv_message_and_parse(conn: socket.socket):
     full_msg = conn.recv(1024).decode()
     cmd, data = chatlib.parse_message(full_msg)
 
-    # Checking that the message we've got are ok
+    # Checking that the message we've got is ok
     if cmd is None:
         error_and_exit("Error parsing message")
 
