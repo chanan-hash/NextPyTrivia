@@ -43,8 +43,15 @@ def main():
                 client_sockets.append(client_socket)
                 print_client_sockets(client_sockets)
             else:
-                print("New data from client!")
-                data = current_socket.recv(MAX_LENGTH_MSG).decode() # 2 types of messages, or logout or regular message
+                try:
+                    print("New data from client!")
+                    data = current_socket.recv(MAX_LENGTH_MSG).decode() # 2 types of messages, or logout or regular message
+                except ConnectionResetError:
+                    client_sockets.remove(current_socket)
+                    current_socket.close()
+                    print("Server is still up and running...")
+                    continue
+
                 if data == "": # IN TCP, logout request is an empty String
                     print("Connection closed")
                     client_sockets.remove(current_socket) # removing it from the client list, and closing it
