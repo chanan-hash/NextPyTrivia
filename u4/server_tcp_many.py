@@ -31,9 +31,10 @@ def main():
     server_socket.listen() # listening for incoming connections
     print("listening for clients...")
     client_sockets = [] # For adding client sockets, in the beginning its empty because there's no connection
+    messages_to_send = [] # Answering to all the ready to write clients
 
     while True: # While the socket is opem, we are scanning for finding clients
-        ready_to_read, ready_to_write, in_error = select.select([server_socket] + client_sockets, [], [])
+        ready_to_read, ready_to_write, in_error = select.select([server_socket] + client_sockets, client_sockets, []) #The ready to write we've added the sockets list , our clients list we have, but not the server cause we don;t want to sent message to ourselves
         # In the beginning the list is not empty it contains the server's socket, that from it we can get new connections
         for current_socket in ready_to_read: # going through the socket list that we can read from
             if current_socket is server_socket: #  In every iteration we are checking the current socket is the server one, if it is we can establish connection, someone new wants to connect
@@ -52,7 +53,15 @@ def main():
 
                 else: # This is a regular message, and because that is an echo server we will sed it the same message
                     print("Client sent: " + data)
+                    # current_socket.send(data.encode())
+                    messages_to_send.append((current_socket, data))
+
+            # After we added all the clients tht are ready to read, we want to go over the sockets that ready to write to
+            for message in messages_to_send:
+                current_socket, data = message
+                if current_socket in ready_to_write:
                     current_socket.send(data.encode())
+                    messages_to_send.remove(message)
 
 
 main()
