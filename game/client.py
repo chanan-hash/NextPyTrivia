@@ -1,12 +1,14 @@
 import socket
 import chatlib  # To use chatlib functions or consts, use chatlib.****
+from typing import Tuple
+
 
 SERVER_IP = "127.0.0.1"  # Our server will run on same computer as client
 SERVER_PORT = 5678
 
 # HELPER SOCKET METHODS
 
-def build_and_send_message(conn : socket.socket, code: str, data: str):
+def build_and_send_message(conn : socket.socket, code: str, data: str) -> None:
     """
     Builds a new message using chatlib, wanted code and message.
     Prints debug info, then sends it to the given socket.
@@ -19,7 +21,7 @@ def build_and_send_message(conn : socket.socket, code: str, data: str):
     conn.send(info.encode())
 
 # conn: socket.socket --> means that the type on 'conn' is a socket object so we can operate on it socket functions
-def recv_message_and_parse(conn: socket.socket):
+def recv_message_and_parse(conn: socket.socket) -> Tuple[str, str]:
     """
     Recieves a new message from given socket,
     then parses the message using chatlib.

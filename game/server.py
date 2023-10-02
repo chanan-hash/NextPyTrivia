@@ -32,7 +32,7 @@ def build_and_send_message(conn: socket, code: str, msg: str):
 	conn.send(full_msg.encode())
 
 
-def recv_message_and_parse(conn: socket):
+def recv_message_and_parse(conn: socket) -> None:
 	## copy from client
 	"""
 	Recieves a new message from given socket,
@@ -133,6 +133,7 @@ def handle_logout_message(conn: socket.socket) -> None:
 	"""
 	global logged_users
 	# Implement code ...
+	print("[SERVER]: Disconnecting client")
 	conn.close()
 
 
@@ -219,9 +220,27 @@ def main():
 	global questions
 
 	print("Welcome to Trivia Server!")
-
 	# Implement code ...
+	server_socket = setup_socket()
 
+	while True:
+		(client_socket, client_address) = server_socket.accept()
+		print("Client connected!")
+
+		try: # Trying reading the message
+			cmd, data = recv_message_and_parse(client_socket)
+
+		except ConnectionResetError:
+			print(f"[SERVER]: Client {client_socket.getpeername()} disconnected")
+			handle_logout_message(client_socket)
+			continue
+
+		if data is None:
+			print(f"[SERVER]: Connection {client_socket.getpeername()} closed!")
+			handle_logout_message(client_socket)
+		else:  # if the client send a valid message, we need to handle it
+			print(f"[SERVER]: client  {client_socket.getpeername()}, send: {data}")
+			handle_client_message(client_socket, cmd, data)
 
 
 if __name__ == '__main__':
