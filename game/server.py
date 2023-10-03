@@ -168,8 +168,8 @@ def handle_login_message(conn: socket.socket, data: str) -> None:
 
 	# Second way, to do all in one condition. Instead of checking if the input (username & password are right) check if they're not on the list,
 	# and if we've passed this condition they're right
-	users = load_user_database()
-	if username != users[f"{username}"] or password != users[username["password"]]: # One of the is wrong, the order is first username and then checking  password
+
+	if username not in users or password != users[username]["password"]: # One of the is wrong, the order is first username and then checking  password
 		build_and_send_message(conn, chatlib.PROTOCOL_SERVER["login_failed_msg"], "Wrong username or password")
 		return
 
