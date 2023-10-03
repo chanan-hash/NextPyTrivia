@@ -10,6 +10,8 @@ import select
 users = {}
 questions = {}
 logged_users = {} # a dictionary of client hostnames to usernames - will be used later
+messages_to_send = [] # Sending messages for multiple clients
+client_sockets_list = [] # For multiple clients
 
 ERROR_MSG = "Error! "
 SERVER_PORT = 5678
@@ -18,7 +20,7 @@ SERVER_IP = "127.0.0.1"
 
 # HELPER SOCKET METHODS
 
-def build_and_send_message(conn: socket, code: str, msg: str):	
+def build_and_send_message(conn: socket, code: str, msg: str):
     ## copy from client
     """
     Builds a new message using chatlib, wanted code and message.
@@ -28,7 +30,7 @@ def build_and_send_message(conn: socket, code: str, msg: str):
     """
 
     full_msg = chatlib.build_message(code, msg)
-    print("[SERVER] ",full_msg)	  # Debug print
+    print("[SERVER] ", conn.getpeername(), full_msg)  # Debug print
     conn.send(full_msg.encode())
 
 
@@ -44,7 +46,7 @@ def recv_message_and_parse(conn: socket.socket):
     full_msg = conn.recv(1024).decode()
     cmd, data = chatlib.parse_message(full_msg)
 
-    print("[CLIENT] ",full_msg)	  # Debug print
+    print("[CLIENT] ", conn.getpeername(), full_msg)  # Debug print
 
     # Checking that the message we've got is ok
     if full_msg == "":
@@ -68,6 +70,7 @@ def load_questions():
     Recieves: -
     Returns: questions dictionary
     """
+    global questions
     questions = {
                 2313 : {"question":"How much is 2+2","answers":["3","4","2","1"],"correct":2},
                 4122 : {"question":"What is the capital of France?","answers":["Lion","Marseille","Paris","Montpellier"],"correct":3}
@@ -81,6 +84,7 @@ def load_user_database():
     Recieves: -
     Returns: user dictionary
     """
+    global users
     users = {
             "test"		:	{"password":"test","score":0,"questions_asked":[]},
             "yossi"		:	{"password":"123","score":50,"questions_asked":[]},
@@ -107,7 +111,7 @@ def setup_socket():
 
 
 
-def send_error(conn: socket, error_msg: str):
+def send_error(conn: socket, error_msg: str) -> None:
     """
     Send error message with given message
     Recieves: socket, message error string from called function
@@ -123,22 +127,20 @@ def send_error(conn: socket, error_msg: str):
 def handle_getscore_message(conn: socket.socket, username: str) -> None:
     global users
     # Implement this in later chapters
-#	user = users[username]
-#	score = user["score"]
-#	build_and_send_message(conn,chatlib.PROTOCOL_SERVER["get_score_msg"], str(score))
 
-    # Check if the username exists in the users dictionary
-    if username in users:
-        score = users[username]["score"]
-        build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_score_msg"], str(score))
-    else:
-        send_error(conn, "User not found")
+    score = users[username]["score"]
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_score_msg"], str(score))
 
-#def handle_highscore_message(conn: socket.socket) -> None:
-#    global users
+def handle_highscore_message(conn: socket.socket) -> None:
+    global users
+    high_score = sorted(users, key=lambda u: users[u]["score"], reverse=True) # Getting the high score by sorting the data of the users
 
-#    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_high_score_msg"], "")
-#
+    the_high_score = ""
+    for user in high_score: # Organizing the high score
+        the_high_score = the_high_score + "\t" + user + ":" + str(users[user]["score"] + "\n")
+
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_high_score_msg"],the_high_score)
+
 
 def handle_logout_message(conn: socket.socket) -> None:
     """
@@ -148,9 +150,9 @@ def handle_logout_message(conn: socket.socket) -> None:
     """
     global logged_users
     # Implement code ...
-    username = logged_users.get(conn.getpeername())
-
-    if username:
+#    username = logged_users.get(conn.getpeername())
+    username = conn.getpeername()
+    if username in logged_users:
         print(f"[SERVER]: User {username} ({conn.getpeername()}) disconnected")
         del logged_users[conn.getpeername()]
     conn.close()
@@ -191,7 +193,7 @@ def handle_login_message(conn: socket.socket, data: str) -> None:
     # Second way, to do all in one condition. Instead of checking if the input (username & password are right) check if they're not on the list,
     # and if we've passed this condition they're right
 
-    if username not in users or password != users[username]["password"]: # One of the is wrong, the order is first username and then checking  password
+    if username not in users or users[username]["password"] != password: # One of the is wrong, the order is first username and then checking  password
         build_and_send_message(conn, chatlib.PROTOCOL_SERVER["login_failed_msg"], "Wrong username or password")
         return
 
@@ -203,6 +205,18 @@ def handle_login_message(conn: socket.socket, data: str) -> None:
     # Now if we passed those to conditions means the login is ok and we can send the client "LOGIN_OK" message
     logged_users[conn.getpeername()] = username  # Add user to logged users dict
     build_and_send_message(conn,chatlib.PROTOCOL_SERVER["login_ok_msg"], "")
+
+    #if username in users:
+     #   if users[username]["password"] == password:
+    #        if not is_login(conn):
+   #             build_and_send_message(conn, chatlib.PROTOCOL_SERVER["login_ok_msg"], "")
+  #              logged_users[conn.getpeername()] = username
+ #           else:
+#                send_error(conn, "this user already login")
+ #       else:
+#            send_error(conn, "the password didn't match")
+#    else:
+#        send_error(conn, "the username doesn't exist")
 
 
 def handle_client_message(conn: socket.socket, cmd, data):
@@ -239,14 +253,19 @@ def handle_client_message(conn: socket.socket, cmd, data):
     elif cmd == chatlib.PROTOCOL_CLIENT["get_score_msg"]:
         handle_getscore_message(conn, logged_users[conn.getpeername()])
 
- #   elif cmd == chatlib.PROTOCOL_CLIENT["get_high_score_msg"]:
-#        handle_high_score_message(conn)
+    elif cmd == chatlib.PROTOCOL_CLIENT["get_high_score_msg"]:
+        handle_highscore_message(conn)
 
 def main():
     # Initializes global users and questions dicionaries using load functions, will be used later
     global users
     global questions
+    global messages_to_send
+    global client_sockets_list
+
     users = load_user_database()
+    questions = load_questions()
+
     print("Welcome to Trivia Server!")
     # Implement code ...
     server_socket = setup_socket()
@@ -264,8 +283,8 @@ def main():
             continue
 
         # If the client sent a logout message or an empty one to logout
-        if data is None:
-            print(f"[SERVER]: Connection {client_socket.getpeername()} closed!")
+        if cmd is None or cmd == chatlib.PROTOCOL_CLIENT["logout_msg"]:
+            print(f"[SERVER]: Connection {client_socket.getpeername()} logged out!")
             handle_logout_message(client_socket)
 
         else:  # if the client send a valid message, we need to handle it
