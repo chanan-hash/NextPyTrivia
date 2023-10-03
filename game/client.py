@@ -42,7 +42,7 @@ def recv_message_and_parse(conn: socket.socket) -> Tuple[str, str]:
     return cmd, data
 
 
-def build_send_recv_parse(conn: socket.socket, cmd: str, data: str) -> None:
+def build_send_recv_parse(conn: socket.socket, cmd: str, data: str) -> Tuple[str, str]:
     """
     This function suppose to shorten the proces by building the message and sending it
     Builds a new message using chatlib, wanted code and message.
@@ -57,7 +57,7 @@ def build_send_recv_parse(conn: socket.socket, cmd: str, data: str) -> None:
     build_and_send_message(conn,cmd,data)
     return recv_message_and_parse(conn) # this return 2 arguments, cnd and data
 
-def connect():
+def connect() -> socket.socket:
     """
      Connect to the given server, return the open socket.
     :return: socket_server, a socket object
@@ -69,7 +69,7 @@ def connect():
     return socket_server
 
 
-def error_and_exit(error_msg: str):
+def error_and_exit(error_msg: str) -> None:
     """
     Prints given error message, closes the program with error code 1
     :param error_msg: error message to print
@@ -87,23 +87,25 @@ def login(conn: socket.socket) -> None:
     :return: None
     """
     while True:
-        username = input("Please enter username: \n")
-        password = input("Please enter password: \n")
+        username = input("Please enter username: ")
+        password = input("Please enter password: ")
 
-        player = chatlib.join_data([username,password])
+        data = chatlib.join_data([username,password])
 
 #        build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["login_msg"],player)
 #        cmd, data = recv_message_and_parse(conn)
-        cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["login_msg"], player)
+        cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["login_msg"], data)
 
         if cmd == chatlib.PROTOCOL_SERVER["login_ok_msg"]:
             print("Login successful!")
             return  # Exit the loop if login succeeds
+        elif cmd == chatlib.PROTOCOL_SERVER["login_failed_msg"]:
+            print(f"Login failed, the server send: {data}")
         else:
             error_and_exit("Login failed. Please try again.")
 
 
-def logout(conn : socket.socket):
+def logout(conn : socket.socket) -> None:
     """
     This functuion sending logout message by using 'build_and_send_message'
     :param conn:
@@ -138,7 +140,7 @@ def get_highscore(conn: socket.socket)-> None:
         error_and_exit("Error getting high score")
 
 # Players functions
-def play_question(conn: socket.socket):
+def play_question(conn: socket.socket) -> None:
     """
     Gets new question from the server,and print it to the user.
     Then get the user answer.
@@ -171,7 +173,6 @@ def play_question(conn: socket.socket):
         # This was showing the question
 
         # Getting the answer
-        # TODO --> put the answer in a while loop
         user_ans(conn,question_id)
 
     else:
@@ -179,7 +180,7 @@ def play_question(conn: socket.socket):
 
 
 # Help function to get the user ans, by question id
-def user_ans(conn :socket.socket, question_id: str):
+def user_ans(conn :socket.socket, question_id: str) -> None:
     """
     Gets answer from user, and send it to server.
     Then, print the response from the server.
@@ -242,10 +243,11 @@ def main():
         elif user_input == "l":
             get_logged_users(conn)
         elif user_input != "q":
-            print("Thanks for playing!!!")
-            break
+            print("Invalid input")
+
     logout(conn)
     conn.close()
+    print("Thanks for playing!!!")
 #    exit()
 
 
