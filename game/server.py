@@ -32,7 +32,7 @@ def build_and_send_message(conn: socket, code: str, msg: str):
 	conn.send(full_msg.encode())
 
 
-def recv_message_and_parse(conn: socket):
+def recv_message_and_parse(conn: socket.socket):
 	## copy from client
 	"""
 	Recieves a new message from given socket,
@@ -47,7 +47,7 @@ def recv_message_and_parse(conn: socket):
 	print("[CLIENT] ",full_msg)	  # Debug print
 
 	# Checking that the message we've got is ok
-	if full_msg is "":
+	if full_msg == "":
 		return None, None
 
 	if cmd is None:
@@ -137,7 +137,7 @@ def handle_logout_message(conn: socket.socket) -> None:
 	conn.close()
 
 
-def handle_login_message(conn: socket.socket, data: str):
+def handle_login_message(conn: socket.socket, data: str) -> None:
 	"""
 	Gets socket and message data of login message. Checks  user and pass exists and match.
 	If not - sends error and finished. If all ok, sends OK message and adds user and address to logged_users
@@ -168,7 +168,8 @@ def handle_login_message(conn: socket.socket, data: str):
 
 	# Second way, to do all in one condition. Instead of checking if the input (username & password are right) check if they're not on the list,
 	# and if we've passed this condition they're right
-	if username not in users or users[username[password]] != password: # One of the is wrong, the order is first username and then checking  password
+	users = load_user_database()
+	if username != users[f"{username}"] or password != users[username["password"]]: # One of the is wrong, the order is first username and then checking  password
 		build_and_send_message(conn, chatlib.PROTOCOL_SERVER["login_failed_msg"], "Wrong username or password")
 		return
 
@@ -193,18 +194,18 @@ def handle_client_message(conn: socket.socket, cmd, data):
 	# Implement code ...
 
 	# checking correction of command
-#	if cmd is None:
-#		send_error(conn, "Error on parsing your message")
-#		return
+	if cmd is None:
+		send_error(conn, "Error on parsing your message")
+		return
 
-#	if cmd == chatlib.PROTOCOL_CLIENT["login_msg"]:
-#		if conn.getpeername() in logged_users: # If the user is already logged
-#			send_error(conn, "You are already logged in!")
-#			return
-#	else:  	# If the command is not login, we check if the user is logged in
-#		if conn.getpeername() not in logged_users:
-#			send_error(conn, "You are not logged in!")
-#			return
+	if cmd == chatlib.PROTOCOL_CLIENT["login_msg"]:
+		if conn.getpeername() in logged_users: # If the user is already logged
+			send_error(conn, "You are already logged in!")
+			return
+	else:  	# If the command is not login, we check if the user is logged in
+		if conn.getpeername() not in logged_users:
+			send_error(conn, "You are not logged in!")
+			return
 
 	# If we've got here means the user may be inside
 	if cmd == chatlib.PROTOCOL_CLIENT["login_msg"]:
@@ -218,7 +219,7 @@ def main():
 	# Initializes global users and questions dicionaries using load functions, will be used later
 	global users
 	global questions
-
+	users = load_user_database()
 	print("Welcome to Trivia Server!")
 	# Implement code ...
 	server_socket = setup_socket()
