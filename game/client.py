@@ -92,14 +92,15 @@ def login(conn: socket.socket) -> None:
 
         player = chatlib.join_data([username,password])
 
-        build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["login_msg"],player)
-        cmd, data = recv_message_and_parse(conn)
+#        build_and_send_message(conn, chatlib.PROTOCOL_CLIENT["login_msg"],player)
+#        cmd, data = recv_message_and_parse(conn)
+        cmd, data = build_send_recv_parse(conn, chatlib.PROTOCOL_CLIENT["login_msg"], player)
 
         if cmd == chatlib.PROTOCOL_SERVER["login_ok_msg"]:
             print("Login successful!")
             return  # Exit the loop if login succeeds
         else:
-            print("Login failed. Please try again.")
+            error_and_exit("Login failed. Please try again.")
 
 
 def logout(conn : socket.socket):

@@ -32,7 +32,7 @@ def build_and_send_message(conn: socket, code: str, msg: str):
 	conn.send(full_msg.encode())
 
 
-def recv_message_and_parse(conn: socket) -> None:
+def recv_message_and_parse(conn: socket):
 	## copy from client
 	"""
 	Recieves a new message from given socket,
@@ -167,8 +167,8 @@ def handle_login_message(conn: socket.socket, data: str):
 #		return
 
 	# Second way, to do all in one condition. Instead of checking if the input (username & password are right) check if they're not on the list,
-	# and if we've passed this condition so they're right
-	if username not in users or users[username].password != password: # One of the is wrong, the order is first username and then checking  password
+	# and if we've passed this condition they're right
+	if username not in users or users[username[password]] != password: # One of the is wrong, the order is first username and then checking  password
 		build_and_send_message(conn, chatlib.PROTOCOL_SERVER["login_failed_msg"], "Wrong username or password")
 		return
 
@@ -193,24 +193,24 @@ def handle_client_message(conn: socket.socket, cmd, data):
 	# Implement code ...
 
 	# checking correction of command
-	if cmd is None:
-		send_error(conn, "Error on parsing your message")
-		return
+#	if cmd is None:
+#		send_error(conn, "Error on parsing your message")
+#		return
 
-	if cmd == chatlib.PROTOCOL_SERVER["login_msg"]:
-		if conn.getpeername() in logged_users: # If the user is already logged
-			send_error(conn, "You are already logged in!")
-			return
-	else:  	# If the command is not login, we check if the user is logged in
-		if conn.getpeername() not in logged_users:
-			send_error(conn, "You are not logged in!")
-			return
+#	if cmd == chatlib.PROTOCOL_CLIENT["login_msg"]:
+#		if conn.getpeername() in logged_users: # If the user is already logged
+#			send_error(conn, "You are already logged in!")
+#			return
+#	else:  	# If the command is not login, we check if the user is logged in
+#		if conn.getpeername() not in logged_users:
+#			send_error(conn, "You are not logged in!")
+#			return
 
 	# If we've got here means the user may be inside
-	if cmd == chatlib.PROTOCOL_SERVER["login_msg"]:
+	if cmd == chatlib.PROTOCOL_CLIENT["login_msg"]:
 		handle_login_message(conn,data)
 
-	elif cmd == chatlib.PROTOCOL_SERVER["loguot_msg"]:
+	elif cmd == chatlib.PROTOCOL_CLIENT["logout_msg"]:
 		handle_logout_message(conn)
 
 
@@ -235,9 +235,11 @@ def main():
 			handle_logout_message(client_socket)
 			continue
 
-		if data is None:
+		# If the client sent a logout message or an empty one to logout
+		if data is None or data == chatlib.PROTOCOL_CLIENT["logout_msg"]:
 			print(f"[SERVER]: Connection {client_socket.getpeername()} closed!")
 			handle_logout_message(client_socket)
+
 		else:  # if the client send a valid message, we need to handle it
 			print(f"[SERVER]: client  {client_socket.getpeername()}, send: {data}")
 			handle_client_message(client_socket, cmd, data)
