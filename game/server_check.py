@@ -1,6 +1,10 @@
 ##############################################################################
 # server.py
 ##############################################################################
+
+# Contributed by:
+# https://github.com/hilell-elsh/study-python-server-client-trivia/blob/main/server.py
+
 import random
 import socket
 import chatlib
@@ -122,7 +126,7 @@ def send_error(conn, error_msg):
 def handle_getscore_message(conn, username):
     global users
     score = users[username]["score"]
-    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["score_msg"], str(score))
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_score_msg"], str(score))
 
 
 def handle_logout_message(conn):
@@ -177,7 +181,7 @@ def handle_highscore_massage(conn):
     for user in highscore:
         highscore_data = highscore_data + "\t" + user + ":" + str(users[user]["score"]) + "\n"
 
-    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["highscore_msg"], highscore_data)
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_high_score_msg"], highscore_data)
 
 
 def handle_client_message(conn, cmd, data):
@@ -194,13 +198,13 @@ def handle_client_message(conn, cmd, data):
         send_error(conn, "command before login")
     #    elif cmd == chatlib.PROTOCOL_CLIENT["logout_msg"]:
     #        handle_logout_message(conn)
-    elif cmd == chatlib.PROTOCOL_CLIENT["score_msg"]:
+    elif cmd == chatlib.PROTOCOL_CLIENT["get_score_msg"]:
         handle_getscore_message(conn, logged_users[conn.getpeername()])
-    elif cmd == chatlib.PROTOCOL_CLIENT["highscore_msg"]:
+    elif cmd == chatlib.PROTOCOL_CLIENT["get_high_score_msg"]:
         handle_highscore_massage(conn)
-    elif cmd == chatlib.PROTOCOL_CLIENT["logged_users_msg"]:
+    elif cmd == chatlib.PROTOCOL_CLIENT["get_login_players"]:
         handle_logged_message(conn)
-    elif cmd == chatlib.PROTOCOL_CLIENT["get_quest_msg"]:
+    elif cmd == chatlib.PROTOCOL_CLIENT["get_question"]:
         handle_question_massage(conn)
     elif cmd == chatlib.PROTOCOL_CLIENT["answer_msg"]:
         handle_answer_massage(conn, logged_users[conn.getpeername()], data)
@@ -210,7 +214,7 @@ def handle_client_message(conn, cmd, data):
 
 def handle_logged_message(conn):
     logged_str = ','.join(logged_users.values())
-    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["logged_users_list"], logged_str)
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_login_players_msg"], logged_str)
 
 
 def handle_question_massage(conn):

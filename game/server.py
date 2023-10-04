@@ -31,7 +31,8 @@ def build_and_send_message(conn: socket, code: str, msg: str):
 
     full_msg = chatlib.build_message(code, msg)
     print("[SERVER] ", conn.getpeername(), full_msg)  # Debug print
-    conn.send(full_msg.encode())
+#    conn.send(full_msg.encode())
+    messages_to_send.append((conn.getpeername(), full_msg))
 
 
 def recv_message_and_parse(conn: socket.socket):
@@ -141,11 +142,21 @@ def handle_highscore_message(conn: socket.socket) -> None:
 
     build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_high_score_msg"],the_high_score)
 
+def handle_logged_message (conn : socket.socket):
+    """
+    Gets the logged in players and send them to the client.
+    :param conn:
+    :return:
+    """
+    global logged_users
+    are_logged = ", ".join(logged_users.values())
+    build_and_send_message(conn, chatlib.PROTOCOL_SERVER["get_login_players_msg"], are_logged)
+
 
 def handle_logout_message(conn: socket.socket) -> None:
     """
-    Closes the given socket (in laster chapters, also remove user from logged_users dictioary)
-    Recieves: socket
+    Closes the given socket (in later chapters, also remove user from logged_users dictioary)
+    Receives: socket
     Returns: None
     """
     global logged_users
@@ -155,6 +166,7 @@ def handle_logout_message(conn: socket.socket) -> None:
     if username in logged_users:
         print(f"[SERVER]: User {username} ({conn.getpeername()}) disconnected")
         del logged_users[conn.getpeername()]
+    client_sockets_list.remove(conn)
     conn.close()
 
 #    print("[SERVER]: Disconnecting client, waiting for new connection")
@@ -256,6 +268,9 @@ def handle_client_message(conn: socket.socket, cmd, data):
     elif cmd == chatlib.PROTOCOL_CLIENT["get_high_score_msg"]:
         handle_highscore_message(conn)
 
+    elif cmd == chatlib.PROTOCOL_CLIENT["get_login_players"]:
+        handle_logged_message(conn)
+
 def main():
     # Initializes global users and questions dicionaries using load functions, will be used later
     global users
@@ -271,25 +286,38 @@ def main():
     server_socket = setup_socket()
 
     while True:
-        (client_socket, client_address) = server_socket.accept()
-        print("Client connected!")
+        ready_to_read, ready_to_write, in_error = select.select([server_socket] + client_sockets_list, client_sockets_list, [])
 
-        try: # Trying reading the message
-            cmd, data = recv_message_and_parse(client_socket)
+        for current_socket in ready_to_read:
+            if current_socket is server_socket: # New client joined in
+                (client_socket, client_address) = current_socket.accept()
+                print("New client connected!")
+                client_sockets_list.append(client_socket)
+            else:
+                try: # Trying reading the message
+                    cmd, data = recv_message_and_parse(current_socket)
 
-        except ConnectionResetError:
-            print(f"[SERVER]: Client {client_socket.getpeername()} disconnected")
-            handle_logout_message(client_socket)
-            continue
+                except ConnectionResetError:
+                    print(f"[SERVER]: Client {current_socket.getpeername()} disconnected")
+                    handle_logout_message(current_socket)
+                    continue
 
-        # If the client sent a logout message or an empty one to logout
-        if cmd is None or cmd == chatlib.PROTOCOL_CLIENT["logout_msg"]:
-            print(f"[SERVER]: Connection {client_socket.getpeername()} logged out!")
-            handle_logout_message(client_socket)
+            # If the client sent a logout message or an empty one to logout
+                    if data is None or cmd == chatlib.PROTOCOL_CLIENT["logout_msg"]:
+                        print(f"[SERVER]: Connection {current_socket.getpeername()} logged out!")
+                        handle_logout_message(current_socket)
 
-        else:  # if the client send a valid message, we need to handle it
-            print(f"[SERVER]: client  {client_socket.getpeername()}, send: {data}")
-            handle_client_message(client_socket, cmd, data)
+                    else:  # if the client send a valid message, we need to handle it
+                        print(f"[SERVER]: client  {client_socket.getpeername()}, send: {data}")
+                        handle_client_message(client_socket, cmd, data)
+
+        # Answering all the sockets messages
+        for socket_to_write in ready_to_write:
+            for to_send in messages_to_send:
+                if to_send[0] == socket_to_write.getpeername():
+                    socket_to_write.send(to_send[1].encode())
+                    messages_to_send.remove(to_send)
+
 
 if __name__ == '__main__':
     main()
